@@ -3,32 +3,56 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HRMS Visitor & Slot Management</title>
+    <title>NIC OVMS - Multi-Role Portal</title>
     <style>
       body {
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         background-color: #f4f6f9;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
         margin: 0;
         padding: 20px;
-        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
       }
-      .form-container {
+      /* Top Role Bar */
+      .role-selector {
+        background: #fff;
+        padding: 10px 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 25px;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+      }
+      .role-btn {
+        padding: 8px 16px;
+        border: 1px solid #ddd;
+        background: #f8f9fa;
+        cursor: pointer;
+        border-radius: 4px;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+      .role-btn.active {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+      }
+      /* Container App View Card */
+      .app-card {
         background: white;
         padding: 30px;
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        width: 400px;
+        width: 100%;
+        max-width: 650px;
         box-sizing: border-box;
       }
       h2 {
         margin-top: 0;
         color: #333;
-        font-size: 22px;
         text-align: center;
         margin-bottom: 20px;
       }
@@ -52,14 +76,6 @@
         border-radius: 4px;
         box-sizing: border-box;
         font-size: 14px;
-        color: #333;
-        background-color: #fff;
-      }
-      select:focus,
-      input:focus {
-        border-color: #007bff;
-        outline: none;
-        box-shadow: 0 0 4px rgba(0, 123, 255, 0.2);
       }
       .time-block {
         display: flex;
@@ -71,17 +87,7 @@
       .radio-group {
         display: flex;
         gap: 15px;
-        align-items: center;
         padding: 5px 0;
-      }
-      .radio-group label {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        font-weight: normal;
-        color: #444;
-        cursor: pointer;
-        margin: 0;
       }
       .btn {
         width: 100%;
@@ -94,11 +100,32 @@
         cursor: pointer;
         font-size: 16px;
         font-weight: bold;
-        transition: background-color 0.2s;
       }
       .btn:hover {
         background-color: #0056b3;
       }
+      .btn-success {
+        background-color: #28a745;
+        width: auto;
+        padding: 6px 12px;
+        margin: 2px;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .btn-danger {
+        background-color: #dc3545;
+        width: auto;
+        padding: 6px 12px;
+        margin: 2px;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      /* Results & Tables */
       .results-box {
         margin-top: 20px;
         background: #f8f9fa;
@@ -106,79 +133,102 @@
         border-radius: 6px;
         border: 1px solid #e9ecef;
         display: none;
-        width: 100%;
-        box-sizing: border-box;
-      }
-      .slot-title {
-        margin: 0 0 10px 0;
-        color: #007bff;
-        font-size: 15px;
-        font-weight: bold;
       }
       .slot-item {
         background: white;
-        padding: 10px 12px;
-        margin: 6px 0;
+        padding: 12px;
+        margin: 8px 0;
         border-left: 4px solid #007bff;
         border-radius: 4px;
         font-family: monospace;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .slot-item:hover {
+        background: #e6f2ff;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
         font-size: 14px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        color: #333;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      .status-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+      .status-PENDING {
+        background: #ffeeba;
+        color: #856404;
+      }
+      .status-APPROVED {
+        background: #d4edda;
+        color: #155724;
+      }
+      .status-REJECTED {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .status-CHECKED_IN {
+        background: #cce5ff;
+        color: #004085;
       }
     </style>
   </head>
   <body>
-    <div class="form-container">
-      <h2>Visitor Pass Request</h2>
+    <div class="role-selector">
+      <span><strong>Select Workspace View:</strong></span>
+      <button class="role-btn active" onclick="switchView('visitor')">
+        1. Visitor Request Form
+      </button>
+      <button class="role-btn" onclick="switchView('officer')">
+        2. Officer Dashboard
+      </button>
+      <button class="role-btn" onclick="switchView('guard')">
+        3. Security Gate Portal
+      </button>
+    </div>
 
+    <div id="visitorView" class="app-card">
+      <h2>Visitor Pass Request</h2>
       <div class="form-group">
         <label for="visitorName">Visitor Name</label>
         <input type="text" id="visitorName" placeholder="Enter your name" />
       </div>
-
       <div class="form-group">
         <label for="officerSelect">Select Officer to Meet</label>
         <select id="officerSelect">
           <option value="">Loading officers...</option>
         </select>
       </div>
-
       <div class="form-group">
         <label for="slotDate">Select Date</label>
         <input type="date" id="slotDate" />
       </div>
-
       <div class="form-group">
         <label>Define Time Block</label>
         <div class="time-block">
           <div>
-            <label
-              style="
-                font-size: 12px;
-                font-weight: normal;
-                margin-bottom: 2px;
-                color: #777;
-              "
-              >From:</label
-            >
-            <input type="time" id="fromTime" value="10:00" />
+            <label style="font-size: 12px; color: #777">From:</label
+            ><input type="time" id="fromTime" value="10:00" />
           </div>
           <div>
-            <label
-              style="
-                font-size: 12px;
-                font-weight: normal;
-                margin-bottom: 2px;
-                color: #777;
-              "
-              >To:</label
-            >
-            <input type="time" id="toTime" value="12:00" />
+            <label style="font-size: 12px; color: #777">To:</label
+            ><input type="time" id="toTime" value="12:00" />
           </div>
         </div>
       </div>
-
       <div class="form-group">
         <label>Slot Duration Interval</label>
         <div class="radio-group">
@@ -194,117 +244,295 @@
           >
         </div>
       </div>
-
       <button class="btn" id="generateBtn">Generate Pass & Slots</button>
-
       <div class="results-box" id="resultsBox">
-        <div class="slot-title" id="visitorHeading"></div>
+        <div
+          id="visitorHeading"
+          style="color: #007bff; font-weight: bold; margin-bottom: 10px"
+        ></div>
         <div id="slotsList"></div>
       </div>
     </div>
 
+    <div
+      id="officerView"
+      class="app-card"
+      style="display: none; max-width: 800px"
+    >
+      <h2>Officer Action Workspace</h2>
+      <div class="form-group">
+        <label for="officerFilter">Switch Officer View Context Profile:</label>
+        <select id="officerFilter" onchange="loadOfficerRequests()"></select>
+      </div>
+      <h3>Incoming Appointment Pass Logs</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Visitor</th>
+            <th>Date</th>
+            <th>Requested Window</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="officerTableBody"></tbody>
+      </table>
+    </div>
+
+    <div
+      id="guardView"
+      class="app-card"
+      style="display: none; max-width: 800px"
+    >
+      <h2>Security Gate Clearance Logs</h2>
+      <button
+        class="btn"
+        onclick="loadGuardRequests()"
+        style="margin-bottom: 15px; background: #6c757d"
+      >
+        🔄 Refresh Building Logs
+      </button>
+      <table>
+        <thead>
+          <tr>
+            <th>Pass ID</th>
+            <th>Visitor Name</th>
+            <th>Target Officer</th>
+            <th>Scheduled Time</th>
+            <th>Status</th>
+            <th>Security Action</th>
+          </tr>
+        </thead>
+        <tbody id="guardTableBody"></tbody>
+      </table>
+    </div>
+
     <script>
+      const API_BASE = "http://localhost:8080/api";
+
       document.addEventListener("DOMContentLoaded", function () {
-        const officerDropdown = document.getElementById("officerSelect");
-        const generateBtn = document.getElementById("generateBtn");
-        const resultsBox = document.getElementById("resultsBox");
-        const slotsList = document.getElementById("slotsList");
-        const visitorNameInput = document.getElementById("visitorName");
-        const visitorHeading = document.getElementById("visitorHeading");
-
-        // Pre-fill date selector with current date automatically
         document.getElementById("slotDate").valueAsDate = new Date();
+        initSetup();
 
-        // Fetch officer list from backend database
-        fetch("http://localhost:8080/api/officers")
-          .then((response) => response.json())
+        document
+          .getElementById("generateBtn")
+          .addEventListener("click", submitVisitorRequest);
+      });
+
+      function switchView(viewName) {
+        document
+          .querySelectorAll(".role-btn")
+          .forEach((b) => b.classList.remove("active"));
+        document.getElementById("visitorView").style.display = "none";
+        document.getElementById("officerView").style.display = "none";
+        document.getElementById("guardView").style.display = "none";
+
+        if (viewName === "visitor") {
+          document.getElementById("visitorView").style.display = "block";
+          event.target.classList.add("active");
+        } else if (viewName === "officer") {
+          document.getElementById("officerView").style.display = "block";
+          event.target.classList.add("active");
+          loadOfficerRequests();
+        } else if (viewName === "guard") {
+          document.getElementById("guardView").style.display = "block";
+          event.target.classList.add("active");
+          loadGuardRequests();
+        }
+      }
+
+      function initSetup() {
+        fetch(`${API_BASE}/officers`)
+          .then((res) => res.json())
           .then((data) => {
-            officerDropdown.innerHTML =
+            const vSelect = document.getElementById("officerSelect");
+            const oSelect = document.getElementById("officerFilter");
+
+            vSelect.innerHTML =
               '<option value="">-- Choose an Officer --</option>';
+            oSelect.innerHTML = "";
+
             data.forEach((officer) => {
-              const option = document.createElement("option");
-              option.value = officer.id;
-              option.setAttribute("data-name", officer.name);
-              option.textContent = `${officer.name} (${officer.office})`;
-              officerDropdown.appendChild(option);
+              let optString = `<option value="${officer.id}" data-name="${officer.name}">${officer.name} (${officer.office})</option>`;
+              vSelect.innerHTML += optString;
+              oSelect.innerHTML += optString;
             });
           })
-          .catch((error) => {
-            console.error("Error fetching officers:", error);
-            officerDropdown.innerHTML =
-              '<option value="">Failed to load officers</option>';
-          });
+          .catch((err) =>
+            console.error(
+              "Database table initialization connectivity fault:",
+              err,
+            ),
+          );
+      }
 
-        // Click handler to process and submit choices
-        generateBtn.addEventListener("click", function () {
-          const visitorName = visitorNameInput.value.trim();
-          const selectedOption =
-            officerDropdown.options[officerDropdown.selectedIndex];
-          const date = document.getElementById("slotDate").value;
-          const fromTime = document.getElementById("fromTime").value;
-          const toTime = document.getElementById("toTime").value;
-          const interval = document.querySelector(
-            'input[name="interval"]:checked',
-          ).value;
+      function submitVisitorRequest() {
+        const name = document.getElementById("visitorName").value.trim();
+        const officerId = document.getElementById("officerSelect").value;
+        const date = document.getElementById("slotDate").value;
+        const fromTime = document.getElementById("fromTime").value;
+        const toTime = document.getElementById("toTime").value;
+        const interval = document.querySelector(
+          'input[name="interval"]:checked',
+        ).value;
 
-          // Strict Validation Check
-          if (!visitorName) {
-            alert("Please enter the visitor name first!");
-            return;
-          }
-          if (!selectedOption || selectedOption.value === "") {
-            alert("Please select an officer to meet!");
-            return;
-          }
-          if (!date || !fromTime || !toTime) {
-            alert("Please complete all date and time parameters!");
-            return;
-          }
+        if (!name || !officerId || !date || !fromTime || !toTime) {
+          alert("All parameters are strictly required!");
+          return;
+        }
 
-          const officerName = selectedOption.getAttribute("data-name");
+        // We temporarily request the generation array from the backend
+        const payload = {
+          visitorName: name,
+          officerId: parseInt(officerId),
+          visitDate: date,
+          timeFrom: fromTime + ":00",
+          timeTo: toTime + ":00",
+          slotDuration: parseInt(interval),
+        };
 
-          // Prepare matching JSON payload package for Spring Boot
-          const payload = {
-            fromTime: fromTime,
-            toTime: toTime,
-            interval: interval,
+        // Note: We bypass the immediate DB insert on generation, and generate visual choices first
+        // To avoid redundant entries, we modify the UI to let the user select a specific block
+        generateVisualSlots(payload);
+      }
+
+      function generateVisualSlots(payload) {
+        // Let's compute intervals locally or via quick mapping to show clickable items
+        const list = document.getElementById("slotsList");
+        list.innerHTML = "";
+        document.getElementById("resultsBox").style.display = "block";
+        document.getElementById("visitorHeading").textContent =
+          `👉 Click on a specific slot below to book your appointment:`;
+
+        // Parse time boundaries to draw options
+        let start =
+          parseInt(payload.timeFrom.split(":")[0]) * 60 +
+          parseInt(payload.timeFrom.split(":")[1]);
+        let end =
+          parseInt(payload.timeTo.split(":")[0]) * 60 +
+          parseInt(payload.timeTo.split(":")[1]);
+
+        while (start < end) {
+          let next = start + payload.slotDuration;
+          if (next > end) break;
+
+          let formatTime = (min) => {
+            let h = Math.floor(min / 60);
+            let m = min % 60;
+            let ampm = h >= 12 ? "pm" : "am";
+            let displayH = h % 12 === 0 ? 12 : h % 12;
+            return `${displayH.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")} ${ampm}`;
           };
 
-          // Call backend computation API
-          fetch("http://localhost:8080/api/generate-slots", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          })
-            .then((response) => response.json())
-            .then((slots) => {
-              slotsList.innerHTML = ""; // Wipe clean previous iterations
-              resultsBox.style.display = "block"; // Display results container
+          let dbTimeStr = (min) => {
+            let h = Math.floor(min / 60)
+              .toString()
+              .padStart(2, "0");
+            let m = (min % 60).toString().padStart(2, "0");
+            return `${h}:${m}:00`;
+          };
 
-              if (slots.length === 0) {
-                visitorHeading.style.color = "red";
-                visitorHeading.textContent = "No valid slots could be split.";
-                return;
-              }
+          let slotText = `${formatTime(start)} - ${formatTime(next)}`;
+          let tFrom = dbTimeStr(start);
+          let tTo = dbTimeStr(next);
 
-              // Customize the output presentation heading with your name!
-              visitorHeading.style.color = "#007bff";
-              visitorHeading.textContent = `🎟️ Pass Approved for ${visitorName} to meet ${officerName}. Available Slots:`;
+          // Build item with an explicit click event that finalizes the precise DB write
+          let div = document.createElement("div");
+          div.className = "slot-item";
+          div.textContent = slotText;
+          div.onclick = function () {
+            const finalPayload = {
+              visitorName: payload.visitorName,
+              officerId: payload.officerId,
+              visitDate: payload.visitDate,
+              timeFrom: tFrom,
+              timeTo: tTo,
+              slotDuration: payload.slotDuration,
+            };
 
-              // Render out slots array dynamically
-              slots.forEach((slot) => {
-                const div = document.createElement("div");
-                div.className = "slot-item";
-                div.textContent = slot;
-                slotsList.appendChild(div);
-              });
-            })
-            .catch((error) => {
-              console.error("Error generating slots:", error);
-              alert("Failed to establish server connection.");
+            fetch(`${API_BASE}/generate-slots`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(finalPayload),
+            }).then(() => {
+              alert(
+                `🎉 Success! Confirmed appointment for ${payload.visitorName} from ${slotText}`,
+              );
+              document.getElementById("resultsBox").style.display = "none";
             });
+          };
+          list.appendChild(div);
+
+          start = next;
+        }
+      }
+
+      function loadOfficerRequests() {
+        const offId = document.getElementById("officerFilter").value;
+        if (!offId) return;
+        fetch(`${API_BASE}/requests/officer/${offId}`)
+          .then((res) => res.json())
+          .then((data) => {
+            const body = document.getElementById("officerTableBody");
+            body.innerHTML =
+              data.length === 0
+                ? '<tr><td colspan="5">No current pending applications found.</td></tr>'
+                : "";
+            data.forEach((req) => {
+              body.innerHTML += `
+                <tr>
+                  <td>${req.visitorName}</td>
+                  <td>${req.visitDate}</td>
+                  <td>${req.timeFrom} - ${req.timeTo}</td>
+                  <td><span class="status-badge status-${req.status}">${req.status}</span></td>
+                  <td>
+                    ${
+                      req.status === "PENDING"
+                        ? `
+                      <button class="btn-success" onclick="updateStatus(${req.passId}, 'APPROVED', 'officer')">Approve</button>
+                      <button class="btn-danger" onclick="updateStatus(${req.passId}, 'REJECTED', 'officer')">Reject</button>
+                    `
+                        : "---"
+                    }
+                  </td>
+                </tr>`;
+            });
+          });
+      }
+
+      function loadGuardRequests() {
+        fetch(`${API_BASE}/requests/all`)
+          .then((res) => res.json())
+          .then((data) => {
+            const body = document.getElementById("guardTableBody");
+            body.innerHTML =
+              data.length === 0
+                ? '<tr><td colspan="6">No pass records matching criteria found.</td></tr>'
+                : "";
+            data.forEach((req) => {
+              body.innerHTML += `
+                <tr>
+                  <td><strong>#00${req.passId}</strong></td>
+                  <td>${req.visitorName}</td>
+                  <td>ID: ${req.officerId}</td>
+                  <td>${req.timeFrom}</td>
+                  <td><span class="status-badge status-${req.status}">${req.status}</span></td>
+                  <td>
+                    ${req.status === "APPROVED" ? `<button class="btn-success" onclick="updateStatus(${req.passId}, 'CHECKED_IN', 'guard')">Grant Check-In</button>` : "Clearance Required"}
+                  </td>
+                </tr>`;
+            });
+          });
+      }
+
+      function updateStatus(passId, newStatus, currentRole) {
+        fetch(`${API_BASE}/requests/${passId}/status?status=${newStatus}`, {
+          method: "PUT",
+        }).then(() => {
+          if (currentRole === "officer") loadOfficerRequests();
+          else loadGuardRequests();
         });
-      });
+      }
     </script>
   </body>
 </html>
